@@ -36,21 +36,25 @@ export const useDirectionStore = defineStore("directionStore", () => {
   async function setToDirection(ids: number[], elementId: number) {
     if (ids) {
       const toDirectionsIds = await fetchToDirection(ids);
-      bankDirections.value = directions.value.filter(
-        (direction: Direction) =>
-          toDirectionsIds.data.includes(direction.ids[0]) &&
-          (direction.filter[0] === "r" || direction.filter[0] === "k")
-      );
-      cryptoDirections.value = cryptoDirections.value.map(
-        (direction: Direction) => {
-          return { ...direction, isCurrent: false };
-        }
-      );
-      cryptoDirections.value[
-        directions.value.findIndex((dir) => {
-          return dir.id === elementId;
-        })
-      ].isCurrent = true;
+      if (toDirectionsIds.data) {
+        bankDirections.value = directions.value.filter(
+          (direction: Direction) =>
+            toDirectionsIds.data.includes(direction.ids[0]) &&
+            (direction.filter[0] === "r" || direction.filter[0] === "k")
+        );
+        cryptoDirections.value = cryptoDirections.value.map(
+          (direction: Direction) => {
+            return { ...direction, isCurrent: false };
+          }
+        );
+        cryptoDirections.value[
+          directions.value.findIndex((dir) => {
+            return dir.id === elementId;
+          })
+        ].isCurrent = true;
+      } else {
+        bankDirections.value = [];
+      }
     }
   }
   function setFromDirection(ids: number[], elementId: number) {

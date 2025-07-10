@@ -51,6 +51,7 @@ const props = defineProps<IProps>();
   transition: 0.5s;
   border-radius: 8px;
   column-gap: 8px;
+  transition: 0.5s;
   &:hover {
     cursor: pointer;
     background-color: #1d1e25;
