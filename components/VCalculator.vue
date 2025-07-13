@@ -3,7 +3,7 @@
     <div class="calculator__content">
       <div class="calculator__item calculator-item">
         <div class="calculator-item__header">Отдаете</div>
-        <div class="calculator-item__input">
+        <div class="calculator-item__input" :class="{ error: fromError }">
           <input
             type="text"
             name="from"
@@ -21,6 +21,9 @@
             Макс: {{ directionStore.from?.max }}
             {{ directionStore.from?.currency.toUpperCase() }}
           </span>
+        </div>
+        <div class="calculator-item__error" v-if="fromError">
+          {{ fromError }}
         </div>
       </div>
       <div class="calculator__item calculator-item">
@@ -44,19 +47,29 @@
 </template>
 
 <script setup lang="ts">
-import { useDirectionStore, useExchangeStore } from "#imports";
+import { useDirectionStore, useExchangeStore, useValidate } from "#imports";
 
 const exchangeStore = useExchangeStore();
 const directionStore = useDirectionStore();
+const { validateInput } = useValidate();
 
 const fromInput = ref<string | number>("0");
+const fromError = ref<string | boolean>("");
 
 function onFromInput(event: any) {
-  const val: number = event.target.value.replace(/[^0-9]/g, "");
   if (directionStore.from) {
-    if (directionStore.from?.min < val && val > directionStore.from?.max) {
-      fromInput.value = val;
-      exchangeStore.updateFromValue(+fromInput.value);
+    const input = validateInput(
+      event.target.value,
+      directionStore.from?.min,
+      directionStore.from?.max
+    );
+    if (!input?.error && input?.value) {
+      fromInput.value = input?.value;
+      fromError.value = "";
+      exchangeStore.updateFromValue(fromInput.value);
+    } else if (input?.value) {
+      fromInput.value = input.value;
+      fromError.value = input.error;
     }
   }
 }
@@ -70,7 +83,7 @@ function onFromInput(event: any) {
   &__content {
     display: flex;
     flex-direction: column;
-    row-gap: 20px;
+    row-gap: 25px;
   }
 
   // .calculator__item
@@ -82,6 +95,7 @@ function onFromInput(event: any) {
   display: flex;
   flex-direction: column;
   row-gap: 10px;
+  position: relative;
 
   // .calculator-item__header
 
@@ -97,10 +111,16 @@ function onFromInput(event: any) {
       width: 100%;
       background-color: #1d1e25;
       text-align: right;
-      padding: 14px 10px;
+      padding: 13px 9px;
       border-radius: 7px;
-      border: none;
       outline: none;
+      transition: 0.2s;
+      border: 1px solid #1d1e25;
+    }
+    &.error {
+      input {
+        border: 1px solid rgb(204, 0, 0);
+      }
     }
   }
 
@@ -113,15 +133,13 @@ function onFromInput(event: any) {
     font-size: 15px;
   }
 
-  // .calculator-item__min
-
-  &__min {
-    color: #757981;
-  }
-
-  // .calculator-item__max
-
-  &__max {
+  &__error {
+    position: absolute;
+    right: 0;
+    bottom: -17px;
+    transition: 0.5s;
+    font-size: 13px;
+    color: rgb(204, 0, 0);
   }
 }
 </style>
