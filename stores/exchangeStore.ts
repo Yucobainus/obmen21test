@@ -21,7 +21,6 @@ export const useExchangeStore = defineStore("exchangeStore", () => {
   }
 
   watch(fromValue, () => {
-    console.log(fromValue.value);
     if (fromValue.value) toValue.value = +exchange(fromValue.value).toFixed(8);
   });
 

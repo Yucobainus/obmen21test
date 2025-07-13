@@ -9,6 +9,8 @@
 
 <style lang="scss" scoped>
 .payment {
+  max-height: 85vh;
+  overflow-y: scroll;
   padding: 30px;
 }
 </style>

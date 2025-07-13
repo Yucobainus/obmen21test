@@ -35,13 +35,6 @@ defineProps<IProps>();
 
 <style lang="scss">
 .direction {
-  ::-webkit-scrollbar {
-    width: 2px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #888; /* thumb color */
-    border-radius: 6px;
-  }
   &__info {
     background-color: #1d1e25;
     padding: 30px;

@@ -1,22 +1,37 @@
 <template>
   <form action="#" class="form">
-    <h3 class="form__title">Ваши реквизиты</h3>
+    <h3 class="form__title">Отправитель</h3>
     <div class="form__inputs">
-      <div class="form__input">
+      <div
+        class="form__input"
+        v-for="input in directionStore.form?.from.input"
+        :key="input.name"
+      >
         <base-input
-          :icon="'user.svg'"
-          :name="'fullnamee'"
           :bg-color="'#1D1E25'"
-          :placeholder="'ФИО Получателя'"
-        ></base-input>
+          :name="input.name"
+          :placeholder="input.receive.placeholder"
+          :custom-padding="'20px 0 20px 20px'"
+          class="form-input"
+        >
+        </base-input>
       </div>
-      <div class="form__input">
+    </div>
+    <h3 class="form__title">Получатель</h3>
+    <div class="form__inputs">
+      <div
+        class="form__input"
+        v-for="input in directionStore.form?.to.input"
+        :key="input.name"
+      >
         <base-input
-          :icon="'email.svg'"
-          :name="'email'"
           :bg-color="'#1D1E25'"
-          :placeholder="'Почта получателя'"
-        ></base-input>
+          :name="input.name"
+          :placeholder="input.receive.placeholder"
+          :custom-padding="'20px 0 20px 20px'"
+          class="form-input"
+        >
+        </base-input>
       </div>
     </div>
     <div class="form__license">
@@ -35,7 +50,11 @@
   </form>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useDirectionStore } from "#imports";
+
+const directionStore = useDirectionStore();
+</script>
 
 <style lang="scss" scoped>
 .form {
@@ -46,7 +65,7 @@
   &__title {
     font-size: 24px;
     font-weight: bold;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
 
   // .form__inputs

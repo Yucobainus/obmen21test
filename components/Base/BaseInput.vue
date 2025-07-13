@@ -4,7 +4,7 @@
       <img :src="`/${icon}`" alt="input-icon" />
     </div>
     <input
-      :style="{ 'background-color': bgColor }"
+      :style="{ 'background-color': bgColor, padding: customPadding }"
       type="text"
       :name="name"
       :placeholder="placeholder"
@@ -18,6 +18,7 @@ interface IProps {
   name: string;
   placeholder: string;
   bgColor: string;
+  customPadding?: string;
 }
 withDefaults(defineProps<IProps>(), {
   icon: "",

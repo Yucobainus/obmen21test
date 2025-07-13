@@ -32,7 +32,15 @@ const store = useDirectionStore();
   color: #ffffff;
   margin: 0;
   padding: 0;
+  ::-webkit-scrollbar {
+    width: 2px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #888; /* thumb color */
+    border-radius: 6px;
+  }
 }
+
 *::before,
 *::after {
   margin: 0;

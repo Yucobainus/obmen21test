@@ -30,7 +30,7 @@ defineProps<IProps>();
   display: flex;
   flex-direction: column;
   row-gap: 10px;
-  max-height: 60vh;
+  max-height: 68vh;
   overflow-y: scroll;
   // .directions-list__item
 
