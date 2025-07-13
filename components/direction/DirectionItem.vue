@@ -9,18 +9,18 @@
     </div>
     <div class="direction-item__content">
       <div class="direction-item__icon">
-        <!-- <img src="" alt="arrow" /> -->
+        <img :src="API_BASE_URL + direction.logo.withBackground" alt="arrow" />
       </div>
       <div class="direction-item__description">
         <div class="direction-item__currency">
-          <template v-if="type === 'to'">
+          <template v-if="type === 'from'">
             {{ direction.currency[0].toUpperCase() }}
           </template>
           <template v-else>
             {{ direction.name }}
           </template>
         </div>
-        <div class="direction-item__name" v-if="type === 'to'">
+        <div class="direction-item__name" v-if="type === 'from'">
           {{ direction.name }}
         </div>
       </div>
@@ -30,6 +30,7 @@
 
 <script setup lang="ts">
 import type { Direction } from "~/types/api";
+import { API_BASE_URL } from "~/constants/constants";
 import { useDirectionStore } from "#imports";
 const store = useDirectionStore();
 interface IProps {
@@ -69,11 +70,18 @@ const props = defineProps<IProps>();
   &__content {
     display: flex;
     column-gap: 8px;
+    align-items: center;
   }
 
   // .direction-item__icon
 
   &__icon {
+    width: 24px;
+    height: 24px;
+    img {
+      width: 100%;
+      height: 100%;
+    }
   }
 
   // .direction-item__description

@@ -1,12 +1,21 @@
 import { defineStore } from "pinia";
 import type { Directions, Direction } from "~/types/api";
+import type { ExchangeDirection, Structure } from "~/types/exchange";
 
 export const useDirectionStore = defineStore("directionStore", () => {
-  const { fetchDirections, fetchToDirection } = useApi();
+  const { fetchDirections, fetchFromDirection, fetchPair } = useApi();
   const directions = ref<Directions>([]);
   const bankDirections = ref<Directions>([]);
   const fromDirection = ref<number[]>([]);
   const toDirection = ref<number[]>([]);
+  const fromIds = ref<number[]>([]);
+  const toIds = ref<number[]>([]);
+  const from = ref<ExchangeDirection>();
+  const to = ref<ExchangeDirection>();
+  const form = ref<Structure>();
+  const course = ref<number>(0);
+
+  const loadingTo = ref<boolean>(false);
 
   async function loadDirections() {
     const data = await fetchDirections();
@@ -33,13 +42,14 @@ export const useDirectionStore = defineStore("directionStore", () => {
     if (type === "from") setFromDirection(ids, elementId);
   }
 
-  async function setToDirection(ids: number[], elementId: number) {
+  async function setFromDirection(ids: number[], elementId: number) {
     if (ids) {
-      const toDirectionsIds = await fetchToDirection(ids);
-      if (toDirectionsIds.data) {
+      cleanUp();
+      const fromDirectionsIds = await fetchFromDirection(ids);
+      if (fromDirectionsIds.data) {
         bankDirections.value = directions.value.filter(
           (direction: Direction) =>
-            toDirectionsIds.data.includes(direction.ids[0]) &&
+            fromDirectionsIds.data.includes(direction.ids[0]) &&
             (direction.filter[0] === "r" || direction.filter[0] === "k")
         );
         cryptoDirections.value = cryptoDirections.value.map(
@@ -52,12 +62,13 @@ export const useDirectionStore = defineStore("directionStore", () => {
             return dir.id === elementId;
           })
         ].isCurrent = true;
+        fromIds.value = ids;
       } else {
         bankDirections.value = [];
       }
     }
   }
-  function setFromDirection(ids: number[], elementId: number) {
+  function setToDirection(ids: number[], elementId: number) {
     if (ids) {
       bankDirections.value = bankDirections.value.map(
         (direction: Direction) => {
@@ -66,13 +77,32 @@ export const useDirectionStore = defineStore("directionStore", () => {
       );
       bankDirections.value[
         bankDirections.value.findIndex((dir) => {
-          console.log(dir.id, elementId);
           return dir.id === elementId;
         })
       ].isCurrent = true;
+      toIds.value = ids;
     }
   }
-
+  watchEffect(async () => {
+    if (toIds.value.length >= 1 && fromIds.value.length >= 1) {
+      try {
+        loadingTo.value = true;
+        const formData = await fetchPair(toIds.value[0], fromIds.value[0]);
+        form.value = formData.data.structure;
+        from.value = formData.data.from;
+        to.value = formData.data.to;
+        course.value = formData.data.course;
+      } catch (err) {
+        console.log(err);
+      } finally {
+        loadingTo.value = false;
+      }
+    }
+  });
+  function cleanUp() {
+    toIds.value = [];
+    fromIds.value = [];
+  }
   return {
     directions,
     cryptoDirections,
@@ -80,5 +110,12 @@ export const useDirectionStore = defineStore("directionStore", () => {
     toDirection,
     bankDirections,
     setDirection,
+    fromIds,
+    toIds,
+    form,
+    from,
+    to,
+    course,
+    loadingTo,
   };
 });
