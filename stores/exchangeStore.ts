@@ -5,12 +5,22 @@ export const useExchangeStore = defineStore("exchangeStore", () => {
   const directionStore = useDirectionStore();
   const fromValue = ref<number>(directionStore.from?.min || 0);
   const toValue = ref<number>(
-    +exchange(directionStore.from?.min || 0).toFixed(directionStore.to?.round)
+    +exchange(directionStore.from?.min || 0).toFixed(
+      directionStore.to?.roundCalculator
+    )
   );
+  const fromExchangeValue = ref<number>(0);
+
   function exchange(value: number): number {
     if (value) {
-      console.log(value);
       return +value * +directionStore.course;
+    } else {
+      return 0;
+    }
+  }
+  function exchangeFromCrypto(value: number): number {
+    if (value) {
+      return +value * (1 / +directionStore.course);
     } else {
       return 0;
     }
@@ -19,9 +29,23 @@ export const useExchangeStore = defineStore("exchangeStore", () => {
   function updateFromValue(value: string | number) {
     fromValue.value = +value;
   }
+  function updateToValue(value: string | number) {
+    toValue.value = +value;
+  }
 
   watch(fromValue, () => {
-    if (fromValue.value) toValue.value = +exchange(fromValue.value).toFixed(8);
+    if (fromValue.value)
+      toValue.value = +exchange(fromValue.value).toFixed(
+        directionStore.to?.roundCalculator
+      );
+  });
+
+  watch(toValue, () => {
+    if (toValue.value) {
+      fromExchangeValue.value = +exchangeFromCrypto(toValue.value).toFixed(
+        directionStore.from?.roundCalculator
+      );
+    }
   });
 
   return {
@@ -29,5 +53,7 @@ export const useExchangeStore = defineStore("exchangeStore", () => {
     toValue,
     exchange,
     updateFromValue,
+    updateToValue,
+    fromExchangeValue,
   };
 });

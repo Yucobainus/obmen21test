@@ -29,7 +29,13 @@
       <div class="calculator__item calculator-item">
         <div class="calculator-item__header">Получаете</div>
         <div class="calculator-item__input">
-          <input type="text" name="to" id="to" :value="exchangeStore.toValue" />
+          <input
+            type="text"
+            name="to"
+            id="to"
+            v-model="toInput"
+            @keyup="onToInput"
+          />
         </div>
         <div class="calculator-item__info">
           <span class="calculator-item__min">
@@ -40,6 +46,9 @@
             Макс: {{ directionStore.to?.max }}
             {{ directionStore.to?.currency.toUpperCase() }}
           </span>
+        </div>
+        <div class="calculator-item__error" v-if="toError">
+          {{ toError }}
         </div>
       </div>
     </div>
@@ -56,6 +65,16 @@ const { validateInput } = useValidate();
 const fromInput = ref<string | number>("0");
 const fromError = ref<string | boolean>("");
 
+const toInput = ref<string | number>("0");
+const toError = ref<string | boolean>("");
+
+watch(
+  () => exchangeStore.fromExchangeValue,
+  () => {
+    fromInput.value = exchangeStore.fromExchangeValue;
+  }
+);
+
 function onFromInput(event: any) {
   if (directionStore.from) {
     const input = validateInput(
@@ -70,6 +89,24 @@ function onFromInput(event: any) {
     } else if (input?.value) {
       fromInput.value = input.value;
       fromError.value = input.error;
+    }
+  }
+}
+
+function onToInput(event: any) {
+  if (directionStore.to) {
+    const input = validateInput(
+      event.target.value,
+      directionStore.to?.min,
+      directionStore.to?.max
+    );
+    if (!input?.error && input?.value) {
+      toInput.value = input?.value;
+      toError.value = "";
+      exchangeStore.updateToValue(toInput.value);
+    } else if (input?.value) {
+      toInput.value = input.value;
+      toError.value = input.error;
     }
   }
 }
