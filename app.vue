@@ -6,15 +6,17 @@
           class="content__item"
           :name="'Отдаете'"
           :type="'from'"
-          :directions="store.cryptoDirections"
+          :directions="directionStore.cryptoDirections"
+          @find-in-block="findInCrypto($event.target.value)"
         ></direction-block>
         <direction-block
           class="content__item"
-          v-if="store.bankDirections"
+          v-if="directionStore.bankDirections"
           :name="'Получаете'"
           :type="'to'"
-          :directions="store.bankDirections"
-          :class="{ loading: store.loadingTo }"
+          :directions="directionStore.bankDirections"
+          :class="{ loading: directionStore.loadingTo }"
+          @find-in-block="findInBanks($event.target.value)"
         ></direction-block>
         <payment-block class="content__item"></payment-block>
       </section>
@@ -23,7 +25,14 @@
 </template>
 <script setup lang="ts">
 import { useDirectionStore } from "#imports";
-const store = useDirectionStore();
+const directionStore = useDirectionStore();
+
+function findInCrypto(value: string) {
+  directionStore.findIncryptoDirections(value);
+}
+function findInBanks(value: string) {
+  directionStore.findInbankDirections(value);
+}
 </script>
 <style lang="scss">
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");

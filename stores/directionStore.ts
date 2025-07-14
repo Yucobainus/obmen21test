@@ -14,10 +14,13 @@ export const useDirectionStore = defineStore("directionStore", () => {
   const to = ref<ExchangeDirection>();
   const form = ref<Structure | null>();
   const course = ref<number>(0);
+  const fromDirectionsIds = ref<any>();
 
   const isFetchError = ref<boolean>(false);
 
   const loadingTo = ref<boolean>(false);
+
+  const cryptoDirections = ref<Directions>([]);
 
   async function loadDirections() {
     const data = await fetchDirections();
@@ -27,7 +30,7 @@ export const useDirectionStore = defineStore("directionStore", () => {
       return { ...direction, isCurrent: false, id: counter };
     });
   }
-  const cryptoDirections = ref<Directions>([]);
+
   loadDirections();
   watch(directions, () => {
     let counter = 0;
@@ -47,11 +50,11 @@ export const useDirectionStore = defineStore("directionStore", () => {
   async function setFromDirection(ids: number[], elementId: number) {
     if (ids) {
       cleanUp();
-      const fromDirectionsIds = await fetchFromDirection(ids);
-      if (fromDirectionsIds.data) {
+      fromDirectionsIds.value = await fetchFromDirection(ids);
+      if (fromDirectionsIds.value.data) {
         bankDirections.value = directions.value.filter(
           (direction: Direction) =>
-            fromDirectionsIds.data.includes(direction.ids[0]) &&
+            fromDirectionsIds.value.data.includes(direction.ids[0]) &&
             (direction.filter[0] === "r" || direction.filter[0] === "k")
         );
         cryptoDirections.value = cryptoDirections.value.map(
@@ -60,7 +63,7 @@ export const useDirectionStore = defineStore("directionStore", () => {
           }
         );
         cryptoDirections.value[
-          directions.value.findIndex((dir) => {
+          cryptoDirections.value.findIndex((dir) => {
             return dir.id === elementId;
           })
         ].isCurrent = true;
@@ -108,6 +111,66 @@ export const useDirectionStore = defineStore("directionStore", () => {
     fromIds.value = [];
     form.value = null;
   }
+
+  function findIncryptoDirections(value: string) {
+    if (!value) {
+      cryptoDirections.value = directions.value.filter(
+        (direction: Direction) => direction.filter[0] === "c"
+      );
+    }
+    cryptoDirections.value = directions.value.filter(function (
+      direction: Direction
+    ) {
+      if (direction.filter[0] === "c") {
+        if (direction.name) {
+          if (direction.name.toLowerCase().includes(value.toLowerCase())) {
+            return true;
+          } else {
+            let isCurrency = false;
+            direction.currency.forEach((currency) => {
+              console.log(currency);
+              if (currency.toLowerCase().includes(value.toLowerCase()))
+                isCurrency = true;
+            });
+            return isCurrency;
+          }
+        }
+      }
+    });
+  }
+
+  function findInbankDirections(value: string) {
+    if (!value) {
+      bankDirections.value = directions.value.filter(
+        (direction: Direction) =>
+          fromDirectionsIds.value.data.includes(direction.ids[0]) &&
+          (direction.filter[0] === "r" || direction.filter[0] === "k")
+      );
+    }
+    bankDirections.value = directions.value.filter(function (
+      direction: Direction
+    ) {
+      if (
+        fromDirectionsIds.value.data.includes(direction.ids[0]) &&
+        (direction.filter[0] === "r" || direction.filter[0] === "k")
+      ) {
+        if (direction.name) {
+          if (direction.name.toLowerCase().includes(value.toLowerCase())) {
+            return true;
+          } else {
+            let isCurrency = false;
+            direction.currency.forEach((currency) => {
+              console.log(currency);
+              if (currency.toLowerCase().includes(value.toLowerCase()))
+                isCurrency = true;
+            });
+            return isCurrency;
+          }
+        }
+      }
+    });
+  }
+
   return {
     directions,
     cryptoDirections,
@@ -123,5 +186,7 @@ export const useDirectionStore = defineStore("directionStore", () => {
     course,
     loadingTo,
     isFetchError,
+    findIncryptoDirections,
+    findInbankDirections,
   };
 });

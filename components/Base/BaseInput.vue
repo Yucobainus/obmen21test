@@ -9,6 +9,7 @@
       :name="name"
       :placeholder="placeholder"
       :regex="regex"
+      @input="$emit('input', $event)"
     />
   </div>
 </template>

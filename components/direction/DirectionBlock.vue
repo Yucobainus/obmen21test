@@ -10,6 +10,7 @@
           :icon="'search.svg'"
           :placeholder="'Поиск валюты'"
           :name="name"
+          @input="$emit('findInBlock', $event)"
         ></base-input>
       </div>
     </div>
