@@ -1,75 +1,16 @@
-# Nuxt Minimal Starter
+# Тестовое задание для Obmen21
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## ТЗ
 
-## Setup
+Notion - https://obmen21.notion.site/Obmen-21-22a54b029837803e91f1c03ef23dc6a2
 
-Make sure to install dependencies:
+## Макет
 
-```bash
-# npm
-npm install
+Figma - https://www.figma.com/file/vQUk7fsnN4IfYdOKVNsOAP/%D0%A2%D0%B5%D1%81%D1%82%D0%BE%D0%B2%D0%BE%D0%B5-%D0%B7%D0%B0%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5?type=design&node-id=0-1&t=MfVRYNzrdZd3Iywl-0
 
-# pnpm
-pnpm install
+## Структура проекта
 
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+composables - хуки
+stores - стор
+components - компоненты
+types - типы
