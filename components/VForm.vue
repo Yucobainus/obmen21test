@@ -98,7 +98,7 @@ function submitFrom(event: any) {
     errors.value["Нельзя обменять 0"] = "";
   }
 
-  if (!isError) {
+  if (!isError.value) {
     alert("Форма отправлена");
   }
 }
