@@ -4,178 +4,193 @@ import type { ExchangeDirection, Structure } from "~/types/exchange";
 
 export const useDirectionStore = defineStore("directionStore", () => {
   const { fetchDirections, fetchFromDirection, fetchPair } = useApi();
+
+  // Состояние хранилища
   const directions = ref<Directions>([]);
   const bankDirections = ref<Directions>([]);
-  const fromDirection = ref<number[]>([]);
-  const toDirection = ref<number[]>([]);
+  const cryptoDirections = ref<Directions>([]);
   const fromIds = ref<number[]>([]);
   const toIds = ref<number[]>([]);
   const from = ref<ExchangeDirection>();
   const to = ref<ExchangeDirection>();
-  const form = ref<Structure | null>();
+  const form = ref<Structure | null>(null);
   const course = ref<number>(0);
-  const fromDirectionsIds = ref<any>();
+  const fromDirectionsIds = ref<number[]>([]);
 
+  // Состояние загрузки и ошибок
   const isFetchError = ref<boolean>(false);
-
   const loadingTo = ref<boolean>(false);
 
-  const cryptoDirections = ref<Directions>([]);
+  // Инициализация направлений
+  const initializeDirections = async () => {
+    try {
+      const { data } = await fetchDirections();
+      directions.value = data.map((direction, index) => ({
+        ...direction,
+        isCurrent: false,
+        id: index + 1,
+      }));
 
-  async function loadDirections() {
-    const data = await fetchDirections();
-    let counter = 0;
-    directions.value = data.data.map((direction) => {
-      counter++;
-      return { ...direction, isCurrent: false, id: counter };
-    });
-  }
+      // Инициализируем крипто-направления сразу
+      cryptoDirections.value = directions.value
+        .filter((direction) => direction.filter[0] === "c")
+        .map((direction, index) => ({
+          ...direction,
+          id: index + 1,
+        }));
+    } catch (error) {
+      console.error("Failed to load directions:", error);
+      isFetchError.value = true;
+    }
+  };
 
-  loadDirections();
-  watch(directions, () => {
-    let counter = 0;
-    cryptoDirections.value = directions.value
-      .filter((direction: Direction) => direction.filter[0] === "c")
-      .map((direction) => {
-        counter++;
-        return { ...direction, id: counter };
-      });
-  });
+  // Загрузка направлений при создании хранилища
+  initializeDirections();
 
-  function setDirection(ids: number[], type: string, elementId: number) {
-    if (type === "to") setToDirection(ids, elementId);
-    if (type === "from") setFromDirection(ids, elementId);
-  }
+  // Установка направления
+  const setDirection = (
+    ids: number[],
+    type: "from" | "to",
+    elementId: number
+  ) => {
+    if (type === "to") {
+      setToDirection(ids, elementId);
+    } else {
+      setFromDirection(ids, elementId);
+    }
+  };
 
-  async function setFromDirection(ids: number[], elementId: number) {
-    if (ids) {
-      cleanUp();
-      fromDirectionsIds.value = await fetchFromDirection(ids);
-      if (fromDirectionsIds.value.data) {
+  // Установка направления "from"
+  const setFromDirection = async (ids: number[], elementId: number) => {
+    if (!ids?.length) return;
+
+    cleanUp();
+
+    try {
+      const { data } = await fetchFromDirection(ids);
+      fromDirectionsIds.value = data || [];
+
+      if (fromDirectionsIds.value.length) {
         bankDirections.value = directions.value.filter(
-          (direction: Direction) =>
-            fromDirectionsIds.value.data.includes(direction.ids[0]) &&
+          (direction) =>
+            fromDirectionsIds.value.includes(direction.ids[0]) &&
             (direction.filter[0] === "r" || direction.filter[0] === "k")
         );
-        cryptoDirections.value = cryptoDirections.value.map(
-          (direction: Direction) => {
-            return { ...direction, isCurrent: false };
-          }
-        );
-        cryptoDirections.value[
-          cryptoDirections.value.findIndex((dir) => {
-            return dir.id === elementId;
-          })
-        ].isCurrent = true;
+
+        // Обновляем состояние isCurrent для крипто-направлений
+        cryptoDirections.value = cryptoDirections.value.map((direction) => ({
+          ...direction,
+          isCurrent: direction.id === elementId,
+        }));
+
         fromIds.value = ids;
       } else {
         bankDirections.value = [];
       }
+    } catch (error) {
+      console.error("Failed to set from direction:", error);
+      isFetchError.value = true;
     }
-  }
-  function setToDirection(ids: number[], elementId: number) {
-    if (ids) {
-      bankDirections.value = bankDirections.value.map(
-        (direction: Direction) => {
-          return { ...direction, isCurrent: false };
-        }
-      );
-      bankDirections.value[
-        bankDirections.value.findIndex((dir) => {
-          return dir.id === elementId;
-        })
-      ].isCurrent = true;
-      toIds.value = ids;
-    }
-  }
+  };
+
+  // Установка направления "to"
+  const setToDirection = (ids: number[], elementId: number) => {
+    if (!ids?.length) return;
+
+    bankDirections.value = bankDirections.value.map((direction) => ({
+      ...direction,
+      isCurrent: direction.id === elementId,
+    }));
+
+    toIds.value = ids;
+  };
+
+  // Загрузка пары направлений
   watchEffect(async () => {
-    if (toIds.value.length >= 1 && fromIds.value.length >= 1) {
+    if (toIds.value.length && fromIds.value.length) {
       try {
         loadingTo.value = true;
-        const formData = await fetchPair(toIds.value[0], fromIds.value[0]);
-        form.value = formData.data.structure;
-        from.value = formData.data.from;
-        to.value = formData.data.to;
-        course.value = formData.data.course;
         isFetchError.value = false;
-      } catch (err) {
+
+        const { data } = await fetchPair(toIds.value[0], fromIds.value[0]);
+        form.value = data.structure;
+        from.value = data.from;
+        to.value = data.to;
+        course.value = data.course;
+      } catch (error) {
         isFetchError.value = true;
-        console.error(err);
+        console.error("Failed to fetch pair:", error);
       } finally {
         loadingTo.value = false;
       }
     }
   });
-  function cleanUp() {
+
+  // Очистка состояния
+  const cleanUp = () => {
     toIds.value = [];
     fromIds.value = [];
     form.value = null;
-  }
+    from.value = undefined;
+    to.value = undefined;
+    course.value = 0;
+  };
 
-  function findIncryptoDirections(value: string) {
+  // Поиск в крипто-направлениях
+  const findInCryptoDirections = (value: string) => {
     if (!value) {
       cryptoDirections.value = directions.value.filter(
-        (direction: Direction) => direction.filter[0] === "c"
+        (direction) => direction.filter[0] === "c"
       );
+      return;
     }
-    cryptoDirections.value = directions.value.filter(function (
-      direction: Direction
-    ) {
-      if (direction.filter[0] === "c") {
-        if (direction.name) {
-          if (direction.name.toLowerCase().includes(value.toLowerCase())) {
-            return true;
-          } else {
-            let isCurrency = false;
-            direction.currency.forEach((currency) => {
-              console.log(currency);
-              if (currency.toLowerCase().includes(value.toLowerCase()))
-                isCurrency = true;
-            });
-            return isCurrency;
-          }
-        }
-      }
-    });
-  }
 
-  function findInbankDirections(value: string) {
+    const searchTerm = value.toLowerCase();
+
+    cryptoDirections.value = directions.value.filter((direction) => {
+      if (direction.filter[0] !== "c") return false;
+
+      return (
+        direction.name?.toLowerCase().includes(searchTerm) ||
+        direction.currency.some((currency) =>
+          currency.toLowerCase().includes(searchTerm)
+        )
+      );
+    });
+  };
+
+  // Поиск в банковских направлениях
+  const findInBankDirections = (value: string) => {
     if (!value) {
       bankDirections.value = directions.value.filter(
-        (direction: Direction) =>
-          fromDirectionsIds.value.data.includes(direction.ids[0]) &&
+        (direction) =>
+          fromDirectionsIds.value.includes(direction.ids[0]) &&
           (direction.filter[0] === "r" || direction.filter[0] === "k")
       );
+      return;
     }
-    bankDirections.value = directions.value.filter(function (
-      direction: Direction
-    ) {
-      if (
-        fromDirectionsIds.value.data.includes(direction.ids[0]) &&
-        (direction.filter[0] === "r" || direction.filter[0] === "k")
-      ) {
-        if (direction.name) {
-          if (direction.name.toLowerCase().includes(value.toLowerCase())) {
-            return true;
-          } else {
-            let isCurrency = false;
-            direction.currency.forEach((currency) => {
-              console.log(currency);
-              if (currency.toLowerCase().includes(value.toLowerCase()))
-                isCurrency = true;
-            });
-            return isCurrency;
-          }
-        }
-      }
+
+    const searchTerm = value.toLowerCase();
+
+    bankDirections.value = directions.value.filter((direction) => {
+      const isBankDirection =
+        fromDirectionsIds.value.includes(direction.ids[0]) &&
+        (direction.filter[0] === "r" || direction.filter[0] === "k");
+
+      if (!isBankDirection) return false;
+
+      return (
+        direction.name?.toLowerCase().includes(searchTerm) ||
+        direction.currency.some((currency) =>
+          currency.toLowerCase().includes(searchTerm)
+        )
+      );
     });
-  }
+  };
 
   return {
     directions,
     cryptoDirections,
-    fromDirection,
-    toDirection,
     bankDirections,
     setDirection,
     fromIds,
@@ -186,7 +201,7 @@ export const useDirectionStore = defineStore("directionStore", () => {
     course,
     loadingTo,
     isFetchError,
-    findIncryptoDirections,
-    findInbankDirections,
+    findInCryptoDirections,
+    findInBankDirections,
   };
 });

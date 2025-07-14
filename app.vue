@@ -28,10 +28,10 @@ import { useDirectionStore } from "#imports";
 const directionStore = useDirectionStore();
 
 function findInCrypto(value: string) {
-  directionStore.findIncryptoDirections(value);
+  directionStore.findInCryptoDirections(value);
 }
 function findInBanks(value: string) {
-  directionStore.findInbankDirections(value);
+  directionStore.findInBankDirections(value);
 }
 </script>
 <style lang="scss">

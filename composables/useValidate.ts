@@ -1,47 +1,129 @@
+interface ValidationResult {
+  value: string;
+  error: string | false;
+  isValid: boolean;
+}
+
 export function useValidate() {
-  const validateInput = (value: string, min: number, max: number) => {
-    let error: string | boolean = false;
-    // value = value
-    //   .replace(/[^\d\.]+/g, " ")
-    //   .replace(/(^\.|\.$|\.(?=\.))/g, "")
-    //   .trim();
-
+  /**
+   * Валидация числового ввода с проверкой диапазона
+   * @param value - Входная строка для проверки
+   * @param min - Минимальное допустимое значение
+   * @param max - Максимальное допустимое значение
+   * @returns Объект с результатами валидации
+   */
+  const validateInput = (
+    value: string,
+    min: number,
+    max: number
+  ): ValidationResult => {
     // Проверка на пустое значение
-    if (value === "") {
-      return;
+    if (value.trim() === "") {
+      return {
+        value,
+        error: "Поле не может быть пустым",
+        isValid: false,
+      };
     }
 
-    // Проверка, что введено число (разрешены только цифры)
-    // if (!/^\d*\.?\d+$/.test(value)) {
-    //   error = "Можно вводить только цифры!";
-    // }
-
+    // Проверка на число
     const numValue = Number(value);
+    if (isNaN(numValue)) {
+      return {
+        value,
+        error: "Введите корректное число",
+        isValid: false,
+      };
+    }
 
-    // Проверка на минимальное значение
+    // Проверка диапазона
+    let error: string | false = false;
     if (numValue < min) {
-      error = `Число не может быть меньше ${min}`;
+      error = `Значение не может быть меньше ${min}`;
+    } else if (numValue > max) {
+      error = `Значение не может быть больше ${max}`;
     }
 
-    // Проверка на максимальное значение
-    if (numValue > max) {
-      error = `Число не может быть больше ${max}`;
-    }
     return {
       value,
       error,
+      isValid: error === false,
     };
   };
 
+  /**
+   * Проверка строки по регулярному выражению
+   * @param regex - Регулярное выражение для проверки
+   * @param str - Строка для проверки
+   * @returns Объект с результатами проверки
+   */
   const testRegex = (regex: RegExp, str: string) => {
-    // Проверяем, что первый аргумент действительно регулярное выражение
     if (!(regex instanceof RegExp)) {
       throw new TypeError("Первый аргумент должен быть регулярным выражением");
     }
+
+    const isEmpty = str.trim() === "";
+
     return {
-      result: regex.test(str),
-      isEmpty: str ? false : "Введите значение",
+      result: !isEmpty && regex.test(str),
+      isEmpty: isEmpty ? "Введите значение" : false,
+      isValid: !isEmpty && regex.test(str),
     };
   };
-  return { validateInput, testRegex };
+
+  /**
+   * Валидация email
+   * @param email - Email для проверки
+   * @returns Объект с результатами валидации
+   */
+  const validateEmail = (email: string): ValidationResult => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const { result, isEmpty } = testRegex(emailRegex, email);
+
+    return {
+      value: email,
+      error: isEmpty || !result ? "Введите корректный email" : false,
+      isValid: !isEmpty && result,
+    };
+  };
+
+  /**
+   * Валидация пароля
+   * @param password - Пароль для проверки
+   * @param minLength - Минимальная длина пароля
+   * @returns Объект с результатами валидации
+   */
+  const validatePassword = (
+    password: string,
+    minLength = 8
+  ): ValidationResult => {
+    if (password.trim() === "") {
+      return {
+        value: password,
+        error: "Пароль не может быть пустым",
+        isValid: false,
+      };
+    }
+
+    if (password.length < minLength) {
+      return {
+        value: password,
+        error: `Пароль должен содержать минимум ${minLength} символов`,
+        isValid: false,
+      };
+    }
+
+    return {
+      value: password,
+      error: false,
+      isValid: true,
+    };
+  };
+
+  return {
+    validateInput,
+    testRegex,
+    validateEmail,
+    validatePassword,
+  };
 }
