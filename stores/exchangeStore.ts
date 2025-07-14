@@ -34,17 +34,14 @@ export const useExchangeStore = defineStore("exchangeStore", () => {
   }
 
   watch(fromValue, () => {
-    if (fromValue.value)
-      toValue.value = +exchange(fromValue.value).toFixed(
-        directionStore.to?.roundCalculator
-      );
+    toValue.value = +exchange(fromValue.value).toFixed(
+      directionStore.to?.roundCalculator
+    );
   });
 
   watch(toValue, () => {
     if (toValue.value) {
-      fromExchangeValue.value = +exchangeFromCrypto(toValue.value).toFixed(
-        directionStore.from?.roundCalculator
-      );
+      fromExchangeValue.value = +exchangeFromCrypto(toValue.value).toFixed(0);
     }
   });
 
@@ -55,5 +52,6 @@ export const useExchangeStore = defineStore("exchangeStore", () => {
     updateFromValue,
     updateToValue,
     fromExchangeValue,
+    exchangeFromCrypto,
   };
 });

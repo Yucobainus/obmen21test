@@ -12,8 +12,10 @@ export const useDirectionStore = defineStore("directionStore", () => {
   const toIds = ref<number[]>([]);
   const from = ref<ExchangeDirection>();
   const to = ref<ExchangeDirection>();
-  const form = ref<Structure>();
+  const form = ref<Structure | null>();
   const course = ref<number>(0);
+
+  const isFetchError = ref<boolean>(false);
 
   const loadingTo = ref<boolean>(false);
 
@@ -92,8 +94,10 @@ export const useDirectionStore = defineStore("directionStore", () => {
         from.value = formData.data.from;
         to.value = formData.data.to;
         course.value = formData.data.course;
+        isFetchError.value = false;
       } catch (err) {
-        console.log(err);
+        isFetchError.value = true;
+        console.error(err);
       } finally {
         loadingTo.value = false;
       }
@@ -102,6 +106,7 @@ export const useDirectionStore = defineStore("directionStore", () => {
   function cleanUp() {
     toIds.value = [];
     fromIds.value = [];
+    form.value = null;
   }
   return {
     directions,
@@ -117,5 +122,6 @@ export const useDirectionStore = defineStore("directionStore", () => {
     to,
     course,
     loadingTo,
+    isFetchError,
   };
 });

@@ -5,7 +5,7 @@ export function useValidate() {
     //   .replace(/[^\d\.]+/g, " ")
     //   .replace(/(^\.|\.$|\.(?=\.))/g, "")
     //   .trim();
-    console.log(value);
+
     // Проверка на пустое значение
     if (value === "") {
       return;
@@ -32,5 +32,16 @@ export function useValidate() {
       error,
     };
   };
-  return { validateInput };
+
+  const testRegex = (regex: RegExp, str: string) => {
+    // Проверяем, что первый аргумент действительно регулярное выражение
+    if (!(regex instanceof RegExp)) {
+      throw new TypeError("Первый аргумент должен быть регулярным выражением");
+    }
+    return {
+      result: regex.test(str),
+      isEmpty: str ? false : "Введите значение",
+    };
+  };
+  return { validateInput, testRegex };
 }

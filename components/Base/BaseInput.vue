@@ -8,6 +8,7 @@
       type="text"
       :name="name"
       :placeholder="placeholder"
+      :regex="regex"
     />
   </div>
 </template>
@@ -19,6 +20,7 @@ interface IProps {
   placeholder: string;
   bgColor: string;
   customPadding?: string;
+  regex?: string;
 }
 withDefaults(defineProps<IProps>(), {
   icon: "",

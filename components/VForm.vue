@@ -1,5 +1,5 @@
 <template>
-  <form action="#" class="form">
+  <form action="#" class="form" v-if="directionStore.form" @submit="submitFrom">
     <h3 class="form__title">Отправитель</h3>
     <div class="form__inputs">
       <div
@@ -12,6 +12,7 @@
           :name="input.name"
           :placeholder="input.receive.placeholder"
           :custom-padding="'20px 0 20px 20px'"
+          :regex="input.regex"
           class="form-input"
         >
         </base-input>
@@ -29,6 +30,7 @@
           :name="input.name"
           :placeholder="input.receive.placeholder"
           :custom-padding="'20px 0 20px 20px'"
+          :regex="input.regex"
           class="form-input"
         >
         </base-input>
@@ -47,13 +49,59 @@
       </div>
       <input type="submit" value="Перейти к оплате" />
     </div>
+    <div class="error-block" v-if="isError">
+      <div class="error-block__item" v-for="(error, key) in errors" :key="key">
+        <template v-if="key"> {{ key }} : {{ error }} </template>
+      </div>
+    </div>
   </form>
 </template>
 
 <script setup lang="ts">
-import { useDirectionStore } from "#imports";
+import { useDirectionStore, useValidate, useExchangeStore } from "#imports";
+
+const { testRegex } = useValidate();
 
 const directionStore = useDirectionStore();
+const exchangeStore = useExchangeStore();
+
+const isError = ref<boolean>(false);
+const errors = ref<any>({});
+function submitFrom(event: any) {
+  event.preventDefault();
+  isError.value = false;
+  errors.value = {};
+  const elements = event.target.elements;
+
+  for (let el of elements) {
+    if (el.attributes.regex) {
+      let validateInput = testRegex(new RegExp(el.attributes.regex), el.value);
+      if (!validateInput.result) {
+        isError.value = true;
+        errors.value[`${el.value}`] = "Некорректно заполненно поле!";
+      }
+      if (validateInput.isEmpty) {
+        isError.value = true;
+        errors.value[`${el.attributes.placeholder.value}`] =
+          "Поле обязательно к заполнению!";
+      }
+    }
+    if (el.type === "checkbox") {
+      if (!el.checked) {
+        isError.value = true;
+        errors.value["Примите соглашение обмена"] = "";
+      }
+    }
+  }
+
+  if (exchangeStore.fromValue === 0) {
+    errors.value["Нельзя обменять 0"] = "";
+  }
+
+  if (!isError) {
+    alert("Форма отправлена");
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -131,6 +179,17 @@ const directionStore = useDirectionStore();
     height: 3px;
     top: 20px;
     left: 28px;
+  }
+}
+
+.error-block {
+  display: flex;
+  flex-direction: column;
+  row-gap: 9px;
+  margin-top: 20px;
+  &__item {
+    font-weight: 700;
+    color: rgba(204, 0, 0, 0.842);
   }
 }
 </style>

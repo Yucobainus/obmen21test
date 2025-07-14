@@ -1,7 +1,10 @@
 <template>
   <div class="calculator">
     <div class="calculator__content">
-      <div class="calculator__item calculator-item">
+      <div
+        class="calculator__item calculator-item"
+        v-if="directionStore.fromIds.length >= 1"
+      >
         <div class="calculator-item__header">Отдаете</div>
         <div class="calculator-item__input" :class="{ error: fromError }">
           <input
@@ -26,7 +29,10 @@
           {{ fromError }}
         </div>
       </div>
-      <div class="calculator__item calculator-item">
+      <div
+        class="calculator__item calculator-item"
+        v-if="directionStore.toIds.length >= 1"
+      >
         <div class="calculator-item__header">Получаете</div>
         <div class="calculator-item__input">
           <input
@@ -39,11 +45,21 @@
         </div>
         <div class="calculator-item__info">
           <span class="calculator-item__min">
-            Мин: {{ directionStore.to?.min }}
+            Мин:
+            {{
+              exchangeStore
+                .exchange(directionStore.from?.min || 0)
+                .toFixed(directionStore.to?.roundCalculator)
+            }}
             {{ directionStore.to?.currency.toUpperCase() }}
           </span>
           <span class="calculator-item__max">
-            Макс: {{ directionStore.to?.max }}
+            Макс:
+            {{
+              exchangeStore
+                .exchange(directionStore.from?.max || 0)
+                .toFixed(directionStore.to?.roundCalculator)
+            }}
             {{ directionStore.to?.currency.toUpperCase() }}
           </span>
         </div>
@@ -75,6 +91,13 @@ watch(
   }
 );
 
+watch(
+  () => exchangeStore.toValue,
+  () => {
+    toInput.value = exchangeStore.toValue;
+  }
+);
+
 function onFromInput(event: any) {
   if (directionStore.from) {
     const input = validateInput(
@@ -94,11 +117,11 @@ function onFromInput(event: any) {
 }
 
 function onToInput(event: any) {
-  if (directionStore.to) {
+  if (directionStore.to && directionStore.from) {
     const input = validateInput(
       event.target.value,
-      directionStore.to?.min,
-      directionStore.to?.max
+      exchangeStore.exchange(directionStore.from?.min),
+      exchangeStore.exchange(directionStore.from?.max)
     );
     if (!input?.error && input?.value) {
       toInput.value = input?.value;
